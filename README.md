@@ -1,32 +1,93 @@
-# Peluquería · Reservas desde la web
+# PRFT CUTZ · Reservas de barbería
 
-## Publicar con tu Gmail
+Web de PRFT CUTZ para pedir cita desde el móvil. El cliente abre el enlace que recibe por WhatsApp, elige un servicio y reserva una hora libre. La cita aparece en el calendario **Peluquería** de Google Calendar, desde donde el barbero lleva la agenda.
 
-1. **GitHub.** Descomprime el ZIP y sube los cinco archivos a tu repositorio con **Add file → Upload files**.
-2. **Apps Script.** Crea un [proyecto nuevo](https://script.google.com/home). Pega `Codigo.gs` en el archivo de código inicial. Pulsa **+** y crea un archivo de código `Config` y un HTML `Index`. Pega en cada uno el contenido de su archivo.
-3. **Manifiesto.** En **Configuración del proyecto**, marca **Mostrar el archivo de manifiesto appsscript.json en el editor**. Sustitúyelo por el del ZIP y guarda. En **Servicios** aparecerá **Calendar API v3**.
-4. **Agenda.** Desde el editor, ejecuta **prepararAgenda_** y autoriza tu proyecto. Crea el calendario **Peluquería** y activa los reintentos de correo. Si ya tienes un calendario secundario con ese nombre, lo reutiliza si es tuyo, es privado y tiene zona horaria de Madrid.
-5. **Enlace.** Abre **Implementar → Nueva implementación → Aplicación web**. Elige **Ejecutar como yo** y acceso para **Cualquier persona**. Pulsa **Implementar** y copia la URL terminada en `/exec`. En **Configuración del proyecto → Propiedades de la secuencia de comandos**, añade `URL_PUBLICA` con esa URL. [Instrucciones de Google](https://developers.google.com/apps-script/guides/web)
+## Cómo se pide una cita
 
-| Quién | Qué enlace usar |
+1. El cliente elige **Corte de pelo**, **Barba** o **Corte y barba**.
+2. Selecciona un día y una de las horas disponibles. Puede reservar hasta 60 días por adelantado.
+3. Escribe su nombre y correo, y pulsa **Confirmar reserva**. La web vuelve a comprobar que el hueco sigue libre antes de guardar la cita.
+4. Recibe un correo con los datos de la reserva y un enlace privado para consultar, cambiar de hora o cancelar la cita sin crear una cuenta.
+
+## Servicios y horario
+
+| Servicio | Duración | Precio |
+| --- | --- | --- |
+| Corte de pelo | 30 min | 10 € |
+| Barba | 15 min | 5 € |
+| Corte y barba | 45 min | 13 € |
+
+De lunes a viernes se puede reservar de **10:00 a 14:00** y de **16:00 a 20:00**. Los sábados, de **10:00 a 14:00**. El domingo está cerrado. Todas las horas son de Madrid.
+
+Las horas se calculan desde que abre cada tramo, según lo que dura el servicio. Por ejemplo, el viernes por la tarde los cortes empiezan a las 16:00, 16:30, 17:00… Si alguien reserva un corte a las **17:00**, la web quita las opciones de barba de **17:00 y 17:15**. Las **17:30** siguen disponibles si la agenda está libre.
+
+## Cómo se lleva la agenda
+
+- **Ver, mover o cancelar citas.** Abre el calendario **Peluquería** en el móvil o el ordenador. Si cambias o eliminas una cita y Calendar te pregunta si quieres avisar al invitado, pulsa **Enviar**.
+- **Bloquear horas.** Crea un evento marcado como **Ocupado**. Durante ese tiempo la web dejará de ofrecer los servicios que se crucen con él.
+- **Apuntar una cita a mano.** Por ejemplo, crea un evento ocupado llamado `Barba · Ana`, de 15 minutos, y añade el correo de Ana como único invitado. Respeta el nombre del servicio y el punto medio entre espacios. Cada 15 minutos se revisan las citas nuevas o editadas para enviar el enlace de gestión.
+- **Activar recordatorios.** Ejecuta `activarRecordatorios` una vez desde Apps Script con la cuenta que preparó la agenda. Cada cinco minutos se revisan las citas que empiezan en la próxima media hora y se avisa al cliente por correo.
+- **Correos pendientes.** Si falla un aviso de reserva, cambio o cancelación, el proyecto guarda el aviso y reintenta el envío cada 15 minutos.
+
+## Archivos del proyecto
+
+| Archivo | Para qué sirve |
 | --- | --- |
-| Clientes | Envía por WhatsApp la URL `/exec` copiada en el paso 5. Pueden abrirla sin registrarse. |
-| Tú | Abre [Google Calendar](https://calendar.google.com/) o su app. Marca **Peluquería** y elige la vista **Agenda** o **Semana**. |
-| Cliente con cita | Su correo contiene un enlace privado para ver, mover o cancelar su cita. Quien tenga ese enlace podrá gestionarla. |
+| [Index.html](Index.html) | Pantallas para elegir servicio, reservar y gestionar una cita. Incluye el diseño y el código que se ejecuta en el navegador. |
+| [Config.gs](Config.gs) | Servicios, precios, duración, horarios y días de antelación. |
+| [Codigo.gs](Codigo.gs) | Consulta los huecos en Calendar, guarda las reservas, gestiona los cambios y envía las confirmaciones. |
+| [Recordatorios.gs](Recordatorios.gs) | Activa y envía los recordatorios por correo. |
+| [Galeria.gs](Galeria.gs) | Guarda las fotos en Google Drive y comprueba el acceso al panel de administración. |
+| [appsscript.json](appsscript.json) | Configura la zona horaria, los permisos de Drive y el servicio de Google Calendar. |
 
-## Trabajar con la agenda
+## Galería de cortes
 
-- **Servicios, precios y horario.** Edita `Config.gs`. Por ejemplo, cambia `precio: null` por `precio: 12.50`. El horario inicial es de lunes a viernes de 10:00 a 14:00 y de 16:00 a 20:00, y sábados de 10:00 a 14:00. Usa `[]` para cerrar un día. Todo usa la hora de Madrid.
-- **Actualizar la web.** Copia el código modificado a Apps Script y elige **Implementar → Gestionar implementaciones → Editar → Nueva versión → Implementar**. Mantendrás el enlace de WhatsApp.
-- **Mover o cancelar.** En el móvil, edita o elimina la cita en **Peluquería**. Cuando Google pregunte, pulsa **Enviar** para avisar al invitado. Su enlace privado reflejará el cambio.
-- **Cita en persona.** Crea un evento **Ocupado** en **Peluquería**. Para enviar también el enlace privado, pon por ejemplo **Barba · Ana**, dale 15 minutos y añade su correo como único invitado. Separa el nombre exacto del servicio y el del cliente con un punto medio entre espacios. El activador lo recoge normalmente en unos 15 minutos.
-- **Bloquear tiempo.** Añade un evento **Ocupado** durante el descanso, la tarde o los días de vacaciones. Los bloqueos recurrentes también cuentan. Al crear o mover citas directamente en Calendar, revisa el hueco antes de guardar porque la app permite superponer eventos.
+Debajo de **Elige un servicio** puedes ver las fotos publicadas y filtrarlas por **Cortes**, **Barba** y **Corte y barba**. Toca una para ampliarla. Para pasar de foto, desliza el dedo en el móvil o usa las flechas en el ordenador.
 
-## Prueba desde el móvil
+### Activarla en Apps Script
 
-1. En una ventana privada abre `/exec` y elige **Corte y barba a las 17:00** de un día libre. En otra, deja elegida **Barba a las 17:15** del mismo día.
-2. Confirma la primera con un correo tuyo distinto del titular. Comprueba los dos buzones y busca **Corte y barba · [nombre]**, de **17:00 a 17:45**, en tu calendario.
-3. Confirma la segunda. Debe pedirte otra hora. Al actualizar, Barba debe ocultar **17:00, 17:15 y 17:30**.
-4. Con el enlace del correo, mueve la cita a las **18:00**. Verifica que reaparecen las **17:00**. Cancélala y comprueba que se liberan también las **18:00**.
+1. En tu proyecto de Apps Script, actualiza `Index.html` y `appsscript.json`. Crea un archivo de secuencia de comandos llamado `Galeria` y pega el contenido de `Galeria.gs`.
+2. Añade temporalmente esta función al archivo `Galeria` y guarda.
 
-**El coste es de 0 €/mes.** En Gmail personal, Apps Script admite **100 destinatarios de correo al día**. Cada aviso suele consumir dos, cliente y titular en copia oculta. Si se agota el cupo, la cita queda guardada y el envío se reintenta cada 15 minutos. Google Calendar también puede enviar su propia invitación. [Cuotas de Google](https://developers.google.com/apps-script/guides/services/quotas)
+   ```javascript
+   function prepararGaleria() {
+     prepararGaleria_();
+   }
+   ```
+
+3. Selecciona **prepararGaleria** y pulsa **Ejecutar** con la cuenta propietaria. Acepta el nuevo permiso de Google Drive. Cuando el registro indique **Galería preparada**, borra la función temporal y guarda.
+4. En **Configuración del proyecto → Propiedades de la secuencia de comandos**, busca `GALERIA_CLAVE`. Guarda su valor para entrar al panel. La clave se queda en Apps Script y se puede copiar desde esa pantalla cuando la necesites.
+5. Publica una nueva versión de tu implementación actual desde **Implementar → Gestionar implementaciones** para seguir usando el enlace que ya tienen los clientes.
+
+### Publicar una foto
+
+1. Abre la web de reservas y pulsa **Administrar galería** al pie de la página. Entra con `GALERIA_CLAVE`.
+2. Elige una imagen de hasta 20 MB, ponle un título y selecciona una categoría. La web reduce la foto antes de subirla.
+3. Pulsa **Publicar foto**. Para quitarla, usa **Retirar** junto a su título y confirma. La foto retirada pasa a la papelera de Drive.
+
+Las fotos publicadas se ven en el enlace de reservas. La carpeta **PRFT CUTZ · Galería** se crea en el Drive de la cuenta propietaria y se mantiene privada. La sesión del panel dura hasta 30 minutos.
+
+## Cómo ponerla en marcha con tu cuenta
+
+Si ya tienes la web funcionando y solo quieres subir el código a GitHub, puedes saltarte este apartado.
+
+1. Abre [Google Apps Script](https://script.google.com/home) con la cuenta que llevará la agenda y crea un proyecto. Copia `Codigo.gs` en el archivo de código inicial. Añade los archivos de secuencia de comandos `Config`, `Recordatorios` y `Galeria`, y un archivo HTML llamado `Index`. Copia el contenido de cada archivo del repositorio en el correspondiente del editor.
+2. En **Configuración del proyecto**, activa **Mostrar el archivo de manifiesto appsscript.json en el editor**. Sustituye su contenido por el de este repositorio y guarda. En **Servicios** aparecerá **Calendar API v3**.
+3. Para preparar la agenda, añade esta función temporal al final del archivo de código inicial.
+
+   ```javascript
+   function prepararAgenda() {
+     prepararAgenda_();
+   }
+   ```
+
+   Guarda, selecciona **prepararAgenda** en el editor y pulsa **Ejecutar**. Autoriza los permisos con tu cuenta. Cuando veas **Agenda preparada** en el registro, borra la función temporal y guarda. Este paso crea el calendario **Peluquería** o reutiliza el tuyo si ya tienes uno privado con ese nombre y zona horaria de Madrid.
+4. En **Implementar → Nueva implementación**, elige **Aplicación web**. Selecciona tu cuenta en **Ejecutar como** y **Cualquier persona** en el acceso. Pulsa **Implementar** y copia el enlace que acaba en `/exec`.
+5. En **Configuración del proyecto → Propiedades de la secuencia de comandos**, guarda ese enlace como `URL_PUBLICA`. Comparte el enlace `/exec` con los clientes. Cada cliente recibirá su propio enlace para gestionar su cita cuando reserve.
+6. Sigue los pasos de [activación de la galería](#activarla-en-apps-script) a partir del punto 2 para crear la carpeta de fotos y obtener la clave del panel.
+
+## Cómo actualizar la web
+
+Para cambiar precios, horarios o servicios, edita `Config.gs`. Para cambiar lo que ve el cliente, edita `Index.html`. GitHub guarda el código y su historial. La web que usan los clientes se actualiza desde Apps Script.
+
+Copia los archivos modificados al **mismo proyecto de Apps Script**, guarda y entra en **Implementar → Gestionar implementaciones**. Selecciona la implementación actual, pulsa **Editar**, elige **Nueva versión** y pulsa **Implementar**. Así los clientes pueden seguir usando el mismo enlace de reservas.
