@@ -1,4 +1,4 @@
-# Peluquería · Reservas desde WhatsApp
+# Peluquería · Reservas desde la web
 
 ## Publicar con tu Gmail
 
